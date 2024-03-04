@@ -21,41 +21,59 @@ export default function Home() {
   const [reset, setReset] = useState(false)
 
   const getData = async () => {
+    let bslTextTemp
     try {
       // Convert text to BSL grammar text via openai chatgpt
       const words = text.split(" ")
-      let bslTextTemp
       if (words.length == 1) {
         bslTextTemp = text
         setBslText(text)
       } else {
         const pathToBsl = `http://127.0.0.1:5000/bsl?text=${encodeURIComponent(text)}`
         const bslTextRes = await fetch(pathToBsl)
+        if (!bslTextRes.ok) {
+          throw Error(`${bslTextRes.status} status response from server`)
+        }
         const bsl = await bslTextRes.json()
         bslTextTemp = bsl["data"].toLowerCase()
         setBslText(bslTextTemp)
       }
+    } catch (e) {
+      setError(`Cannot get BSL text. Error: ${e.message}`)
+      return null
+    }
     
+    let poseFileObj = new FormData();
+    try {
       // Convert BSL text to pose
       const pathToPose = `https://us-central1-sign-mt.cloudfunctions.net/spoken_text_to_signed_pose?text=${encodeURIComponent(bslTextTemp)}&spoken=en&signed=bfi`
       const res = await fetch(pathToPose)
+      if (!res.ok) {
+        throw Error(`${res.status} status response from server`)
+      }
       const buffer = await res.arrayBuffer()
       setHavePose(true)
-      var blobObj = new Blob([buffer]);
-      var obj = new FormData();
-      obj.append("myfile", blobObj);
-      console.log(buffer)
+      const blobObj = new Blob([buffer]);
+      poseFileObj.append("myfile", blobObj);
+    } catch (e) {
+      setError(`Cannot get pose file for text. Error: ${e.message}`)
+      return null
+    }
 
+    try {
       // Convert Pose to video
       const pathToVideo = "http://127.0.0.1:5000/video"
       const video = await fetch(pathToVideo, {
         method: 'POST',
-        body: obj
+        body: poseFileObj
       })
+      if (!video.ok) {
+        throw Error(`${video.status} status response from server. ${video.statusText}`)
+      }
       const blob = await video.blob()
       return blob
     } catch(e) {
-      setError(`Something went wrong. Error: [${e.message}]`)
+      setError(`Cannot get video. Error: [${e.message}]`)
       return null
     }
   }

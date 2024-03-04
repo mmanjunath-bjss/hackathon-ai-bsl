@@ -1,0 +1,6 @@
+Flask
+opencv-python
+pose-format
+tqdm
+mediapipe
+openai

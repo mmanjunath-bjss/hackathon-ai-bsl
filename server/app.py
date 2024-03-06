@@ -1,12 +1,19 @@
-
+import os
 import cv2
 from pose_format import Pose
 from pose_format.pose_visualizer import PoseVisualizer
 from pose_format.utils.generic import correct_wrists, reduce_holistic
 from tqdm import tqdm
 from flask import Flask, request, send_file, make_response
-from openai import OpenAI
-client = OpenAI()
+from openai import AzureOpenAI
+
+os.environ["OPENAI_API_KEY"] = "e3de288f417747cdb23c9c39bc440a13"
+os.environ["BJSS_ENDPOINT"] = "https://in-bjss-openai.openai.azure.com/"
+client = AzureOpenAI(
+    azure_endpoint=os.getenv("BJSS_ENDPOINT"), 
+    api_key=os.getenv("OPENAI_API_KEY"),  
+    api_version="2024-02-15-preview"
+)
 
 app = Flask(__name__)
 
@@ -18,18 +25,27 @@ def server():
 def text_to_bsl_grammar():
     text = request.args.get('text')
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="chat-test", # model = "deployment_name".
         messages=[
             {
-                "role": "user", 
-                "content": f"BSL word order follows these rules. First the timeframe if any, then location if any, then the object if any, then the subject if any, then the verb if any and finally the question if any. Convert this English sentence to BSL word order and only return the BSL sentence: {text}"}
+                "role": "system", "content": f"You're an expert translating spoken English into British Sign Language, also known as BSL." +
+                "BSL word order follows these rules." +  
+                "First the timeframe if any," +
+                "then location if any," +
+                "then the object if any," +
+                "then the subject if any," +
+                "then the verb if any" +
+                "and finally the question if any."
+            },
+            {   
+                "role": "user", "content": f"Convert this English sentence to BSL word order and only return the BSL sentence: {text}"
+            },
         ]
     )
     data = {"data": completion.choices[0].message.content}
     response = make_response(data)
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-    
 
 @app.route("/video", methods=['POST'])
 def pose_to_video():

@@ -4,3 +4,6 @@ pose-format
 tqdm
 mediapipe
 openai
+python-dotenv
+azure-cognitiveservices-speech
+moviepy

@@ -7,6 +7,7 @@ from tqdm import tqdm
 from flask import Flask, request, send_file, make_response
 from openai import AzureOpenAI
 
+# Azure OpenAI
 os.environ["OPENAI_API_KEY"] = "e3de288f417747cdb23c9c39bc440a13"
 os.environ["BJSS_ENDPOINT"] = "https://in-bjss-openai.openai.azure.com/"
 client = AzureOpenAI(
@@ -14,6 +15,10 @@ client = AzureOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),  
     api_version="2024-02-15-preview"
 )
+
+# Chat gpt AI
+# from openai import OpenAI
+# client = OpenAI()
 
 app = Flask(__name__)
 
@@ -25,7 +30,8 @@ def server():
 def text_to_bsl_grammar():
     text = request.args.get('text')
     completion = client.chat.completions.create(
-        model="chat-test", # model = "deployment_name".
+        model="chat-test", # deployment_name from azure open ai
+        # model="gpt-4-turbo" # model name for chat gpt ai
         messages=[
             {
                 "role": "system", "content": f"You're an expert translating spoken English into British Sign Language, also known as BSL." +

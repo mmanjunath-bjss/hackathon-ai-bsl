@@ -7,6 +7,12 @@
 3. Convert BSL text to pose files via API from sign translate project (under hood is using a machine learning model training on sign language poses)
 4. Convert pose sequences to a video to visualise the poses via code from sign language processing libraries like pose-format and opencv
 
+## Requirements
+
+- Node 18.19.0
+- Python 3.11
+- OpenAI API key, either Azure or Chatgpt, and set API key environment variable in terminal e.g. on macos run `export OPENAI_API_KEY=<your_key_here>`
+
 ## To run
 
 - Start frontend project in one terminal
